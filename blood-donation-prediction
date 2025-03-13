@@ -1,0 +1,36 @@
+import pandas as pd
+import numpy as np
+from tpot import TPOTClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/blood-transfusion/transfusion.data"
+df = pd.read_csv(url)
+
+# Rename columns for better readability
+df.columns = ["Recency", "Frequency", "Monetary", "Time", "Donated"]
+
+# Define features and target variable
+X = df.drop(columns=["Donated"])
+y = df["Donated"]
+
+# Split dataset into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Initialize TPOT with limited generations to speed up processing
+tpot = TPOTClassifier(generations=5, population_size=50, verbosity=2, random_state=42)
+
+# Fit the model
+tpot.fit(X_train, y_train)
+
+# Make predictions
+y_pred = tpot.predict(X_test)
+
+# Evaluate model performance
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Test Accuracy: {accuracy:.4f}")
+
+# Export the best pipeline
+tpot.export("best_model_pipeline.py")
+print("Best model pipeline has been saved to 'best_model_pipeline.py'.")
